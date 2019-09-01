@@ -1,0 +1,205 @@
+create user project_2nd identified by 1234;
+
+grant connect, resource, dba to project_2nd;
+
+drop table QNABOARD;
+
+drop table ACCOUNTLOG;
+
+drop table ACCOUNT;
+
+drop table customer;
+
+drop sequence ACCOUNTLOG_SEQ;
+
+drop sequence QNABOARD_SEQ;
+
+create table customer
+(
+    CUSTID VARCHAR2(20) PRIMARY KEY
+    ,PASSWORD VARCHAR2(20) NOT NULL
+    ,EMAIL VARCHAR2(30) NOT NULL
+    ,DIVISION VARCHAR2(20) NOT NULL
+    ,NAME VARCHAR2(30) NOT NULL
+    ,IDNO VARCHAR2(20) UNIQUE
+    ,ADDRESS VARCHAR2(100)
+);
+
+create table ACCOUNT
+(
+    ACCOUNTNO VARCHAR2(20) PRIMARY KEY
+    ,CUSTID VARCHAR2(20) REFERENCES CUSTOMER(CUSTID)
+    ,ACCOUNTTYPE VARCHAR2(10)
+    ,BALANCE NUMBER DEFAULT 0
+    ,PAYMENT NUMBER
+    ,INTEREST NUMBER(3,2) DEFAULT 0
+    ,STARTDEPOSIT DATE
+    ,ENDDEPOSIT DATE
+    ,APPROVAL VARCHAR2(2)
+);
+
+create table ACCOUNTLOG
+(
+    LOGID NUMBER PRIMARY KEY
+    ,CUSTID VARCHAR2(20) REFERENCES CUSTOMER(CUSTID)
+    ,ACCOUNTNO VARCHAR2(20) REFERENCES ACCOUNT(ACCOUNTNO)
+    ,TRANSFERNO VARCHAR2(20)
+    ,EVENTDATE DATE DEFAULT SYSDATE
+    ,EVENTTYPE VARCHAR2(10)
+    ,EVENTRECORD VARCHAR2(20)
+    ,AMOUNT NUMBER DEFAULT 0
+    ,BALANCE NUMBER
+);
+
+create sequence ACCOUNTLOG_SEQ;
+
+create table QNABOARD
+(
+    BOARDNO NUMBER PRIMARY KEY
+    ,CUSTID VARCHAR2(20) REFERENCES CUSTOMER(CUSTID)
+    ,TITLE VARCHAR2(200) NOT NULL
+    ,CONTENT VARCHAR2(4000) NOT NULL
+    ,REGDATE DATE DEFAULT SYSDATE
+    ,ORIGINALFILE VARCHAR2(200)
+    ,SAVEDFILE VARCHAR2(100)
+    ,HITCOUNT NUMBER DEFAULT 0
+    ,REPLYTEXT VARCHAR2(2000)
+    ,REPDATE DATE
+);
+
+create sequence QNABOARD_SEQ;
+
+create or replace PROCEDURE sp_account_transfer
+(
+	v_custid	    IN accountlog.custid%TYPE,
+	v_accountno 	IN accountlog.accountno%TYPE,
+	v_transferno	IN accountlog.transferno%TYPE,
+	v_amount	    IN accountlog.amount%TYPE
+)
+is
+begin
+    update
+        account
+    set
+        balance=(select balance - v_amount
+                 from account
+                 where accountno=v_accountno)
+    where
+        accountno=v_accountno;
+
+    update
+        account
+    set
+        balance=(select balance + v_amount
+                 from account
+                 where accountno=v_transferno)
+    where
+        accountno=v_transferno;
+
+    insert into accountlog
+    (
+        logid
+        ,custid
+        ,accountno
+        ,transferno
+        ,eventdate
+        ,eventtype
+        ,amount
+        ,balance
+    )
+    values
+    (
+        accountlog_seq.nextval
+        ,v_custid
+        ,v_accountno
+        ,v_transferno
+        ,sysdate
+        ,'transfer'
+        ,v_amount
+        ,(select balance - v_amount
+         from account
+         where accountno=v_accountno)
+    );
+
+end;
+/
+create or replace PROCEDURE sp_account_loan
+(
+	v_custid	    IN accountlog.custid%TYPE,
+	v_accountno 	IN accountlog.accountno%TYPE,
+	v_transferno	IN accountlog.transferno%TYPE,
+	v_amount	    IN accountlog.amount%TYPE
+)
+is
+begin
+    update
+        account
+    set
+        balance=(select balance - v_amount
+                 from account
+                 where accountno=v_accountno)
+    where
+        accountno=v_accountno;
+
+    update
+        account
+    set
+        balance=(select balance - v_amount
+                 from account
+                 where accountno=v_transferno)
+    where
+        accountno=v_transferno;
+
+    insert into accountlog
+    (
+        logid
+        ,custid
+        ,accountno
+        ,transferno
+        ,eventdate
+        ,eventtype
+        ,eventrecord
+        ,amount
+        ,balance
+    )
+    values
+    (
+        accountlog_seq.nextval
+        ,v_custid
+        ,v_transferno
+        ,v_accountno
+        ,sysdate
+        ,'transfer'
+        ,'대출상환'
+        ,v_amount
+        ,(select balance - v_amount
+         from account
+         where accountno=v_transferno)
+    );
+
+    insert into accountlog
+    (
+        logid
+        ,custid
+        ,accountno
+        ,eventdate
+        ,eventtype
+        ,eventrecord
+        ,amount
+        ,balance
+    )
+    values
+    (
+        accountlog_seq.nextval
+        ,v_custid
+        ,v_accountno
+        ,sysdate
+        ,'withdraw'
+        ,'대출상환'
+        ,v_amount
+        ,(select balance - v_amount
+         from account
+         where accountno=v_accountno)
+    );
+end;
+/

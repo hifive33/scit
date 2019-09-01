@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="global.sesoc.bank.dao.AccountMapper">
+	<insert id="insertOne" parameterType="Account">
+	insert into account
+	(
+		accountno
+		,custid
+		,accounttype
+		,balance
+		,payment
+		,interest
+		<if test="years != null">
+		,startdeposit
+		,enddeposit
+		</if>
+		<if test="approval != null">
+		,approval
+		</if>
+	)
+	values
+	(
+		#{accountno}
+		,#{custid}
+		,#{accounttype}
+		,#{balance}
+		,#{payment}
+		,#{interest}
+		<choose>
+			<when test="years == 1">
+				,sysdate
+				,sysdate + interval'1'year
+			</when>
+			<when test="years == 2">
+				,sysdate
+				,sysdate + interval'2'year
+			</when>
+			<when test="years == 3">
+				,sysdate
+				,sysdate + interval'3'year
+			</when>
+		</choose>
+		<if test="approval != null">
+		,#{approval}
+		</if>
+	)
+	</insert>
+	<select id="selectList" resultType="Account">
+		select
+			accountno
+			,custid
+			,accounttype
+			,balance
+			,payment
+			,interest
+			,to_char(startdeposit, 'yyyy.mm.dd') as startdeposit
+			,to_char(enddeposit, 'yyyy.mm.dd') as enddeposit
+			,approval
+			,name as years
+		from
+			account join customer using(custid)
+		where
+			<if test="custid != null">
+				custid=#{custid}
+				and (approval != 'N' or approval is null)
+			</if>
+			<if test="approval != null">
+				approval=#{approval}
+			</if>
+			<if test="accounttype != null">
+				and accounttype = #{accounttype}
+			</if>
+			<if test="accountno != null">
+				and accountno != #{accountno}
+			</if>
+	</select>
+	<update id="updateBalance" parameterType="Account">
+		<selectKey resultType="int" keyProperty="balance" order="BEFORE">
+			select
+	        	balance + #{balance}
+	        from
+	        	account
+	        where
+	        	accountno=#{accountno}
+		</selectKey>
+		update
+			account
+		set
+			balance=#{balance}
+		where
+			accountno=#{accountno}
+	</update>
+	<insert id="insertLog" parameterType="Accountlog">
+		insert into accountlog
+		(
+			logid
+			,custid
+			,accountno
+			<if test="eventtype == 'transfer'">
+			,transferno
+			</if>
+			,eventdate
+			,eventtype
+			,amount
+			,balance
+		)
+		values
+		(
+			accountlog_seq.nextval
+			,#{custid}
+			,#{accountno}
+			<if test="eventtype == 'transfer'">
+			,#{transferno}
+			</if>
+			,sysdate
+			,#{eventtype}
+			,#{amount}
+			,#{balance}
+		)
+	</insert>
+	<update id="transfer" statementType="CALLABLE" parameterType="Accountlog">
+		{ call sp_account_transfer(
+			#{custid}
+			,#{accountno}
+			,#{transferno}
+			,#{amount}
+		 )
+		}
+	</update>
+	<select id="lookup" parameterType="String" resultType="Customer">
+		select
+			name
+		from
+			account join customer using(custid)
+		where
+			accountno=#{accountno}
+			and accounttype='checking'
+	</select>
+	<select id="selectLogList" resultType="Accountlog">
+		select * from
+		(
+		    select rownum as num, b.* from
+		    (
+			select
+				logid
+				,custid
+				,accountno
+				,transferno
+				,eventdate
+				,eventtype
+				,eventrecord
+				,amount
+				,balance
+			from
+				accountlog
+			where
+				accountno=#{accountno}
+				<if test="eventtype == 'deposit'">
+				and eventtype='deposit'
+				</if>
+				<if test="eventtype == 'withdraw'">
+				and eventtype!='deposit'
+				</if>
+				<if test="fromdate != '' or todate != ''">
+				and eventdate between #{fromdate} and to_date(#{todate}) + interval'1'day
+				</if>
+			order by
+				logid ${order}
+		    ) b
+		)
+		where num between #{srow} and #{erow}
+	</select>
+	<update id="loanProcess" statementType="CALLABLE" parameterType="Accountlog">
+		{ call sp_account_loan(
+			#{custid}
+			,#{accountno}
+			,#{transferno}
+			,#{amount}
+		 )
+		}
+	</update>
+	<select id="getBalance" parameterType="String" resultType="Account">
+		select
+			balance
+		from
+			account
+		where
+			accountno=#{accountno}
+	</select>
+	<!-- 전체 글 개수 -->
+	<select id="getAccountListCount" resultType="int">
+		select
+			count(*)
+		from
+			accountlog
+		where
+			accountno=#{accountno}
+			<if test="eventtype == 'deposit'">
+			and eventtype='deposit'
+			</if>
+			<if test="eventtype == 'withdraw'">
+			and eventtype!='deposit'
+			</if>
+			<if test="fromdate != '' or todate != ''">
+			and eventdate between #{fromdate} and to_date(#{todate}) + interval'1'day
+			</if>
+	</select>
+	<update id="approveLoan" parameterType="String">
+		update
+			account
+		set
+			approval = 'Y'
+		where
+			accountno=#{accountno}
+	</update>
+	<delete id="denyLoan" parameterType="String">
+		delete from
+			account
+		where
+			accountno=#{accountno}
+	</delete>
+</mapper>

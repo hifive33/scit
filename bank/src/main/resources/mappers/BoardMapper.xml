@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="global.sesoc.bank.dao.BoardMapper">
+	<insert id="insertBoard" parameterType="Qnaboard">
+		insert into qnaboard
+		(
+			boardno
+			,custid
+			,title
+			,content
+			,regdate
+			<if test="originalfile != null">
+				,originalfile
+				,savedfile
+			</if>
+		)
+		values
+		(
+			QNABOARD_SEQ.nextval
+			,#{custid}
+			,#{title}
+			,#{content}
+			,sysdate
+			<if test="originalfile != null">
+				,#{originalfile}
+				,#{savedfile}
+			</if>
+		)
+		<selectKey keyProperty="boardno" resultType="Integer" order="AFTER">
+			SELECT QNABOARD_SEQ.currval FROM dual
+		</selectKey>
+	</insert>
+
+	<select id="selectOne" parameterType="int" resultType="Qnaboard">
+		select
+			boardno
+			,custid
+			,title
+			,content
+			,to_char(regdate,'yyyy-mm-dd') as regdate
+			,originalfile
+			,savedfile
+			,hitcount
+			,replytext
+			,repdate
+		 from
+		 	qnaboard
+		 where
+		 	boardno = #{boardno}
+	</select>
+
+	<delete id="deleteBoard" parameterType="int">
+		DELETE
+			qnaboard
+		where
+			boardno=#{boardno}
+	</delete>
+	
+	<update id="updateBoard" parameterType="Qnaboard">
+		UPDATE
+			qnaboard
+		SET
+			title = #{title}
+			,content = #{content}
+			<if test="originalfile != null">
+				,originalfile = #{originalfile}
+				,savedfile = #{savedfile}
+			</if>
+		where
+			boardno = #{boardno}
+	</update>
+	
+	<select id="selectAll" resultType="Qnaboard" parameterType="Map">
+		select
+			boardno
+			,custid
+			,title
+			,content
+			,to_char(regdate,'yyyy-mm-dd') as regdate
+			,originalfile
+			,savedfile
+			,hitcount
+			,replytext
+			,repdate
+		 from
+		 	qnaboard
+		<if test="searchItem !=''and searchWord !=null">
+			WHERE ${searchItem} LIKE '%'||#{searchWord}||'%'
+		</if>
+		ORDER BY
+			boardno DESC
+	</select>
+	
+	<select id="getBoardCount" parameterType="map" resultType="int">
+		SELECT
+			count(*)
+		FROM
+			qnaboard
+		<if test="searchItem !=''and searchWord !=null">
+			WHERE ${searchItem} LIKE '%'||#{searchWord}||'%'
+		</if>
+	</select>
+	
+	<update id="updateCount" parameterType="int">
+		UPDATE
+			qnaboard
+		SET
+			hitcount = hitcount + 1
+		where
+			boardno = #{boardno}
+	</update>
+	
+	<update id="insertReply" parameterType="Qnaboard">
+		update
+			qnaboard
+		set
+			replytext=#{replytext}
+			,repdate=sysdate
+		where
+			boardno=#{boardno}
+	</update>
+</mapper>
