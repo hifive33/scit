@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -76,15 +77,17 @@ public class CustomerBoardController {
 		return "customer/board/board_update";
 	}
 
-	@RequestMapping("/board_update.do")
+	@PostMapping("/board_update.do")
 	public String update(Qnaboard board, RedirectAttributes rttr, MultipartFile upload) {
+		System.out.println("board_update.do");
 		Qnaboard tempboard = repo.selectOne(board.getBoardno());
 		
-		if ((upload != null) && (!upload.isEmpty()) &&
-			(tempboard.getSavedfile() != null)) {
+		if ((upload != null) && (!upload.isEmpty())) {
 			
-	        File file = new File(uploadPath + "/" + tempboard.getSavedfile());
-	        if(file.exists()) file.delete();
+	        if((tempboard.getSavedfile() != null)) {
+	        	File file = new File(uploadPath + "/" + tempboard.getSavedfile());
+	        	if(file.exists()) file.delete();
+	        }
 			
 			board.setOriginalfile(upload.getOriginalFilename());
 			board.setSavedfile(FileService.saveFile(upload, uploadPath));

@@ -21,4 +21,5 @@ public interface AccountMapper {
 	int getAccountListCount(Map<String, String> map);
 	int approveLoan(String accountno);
 	int denyLoan(String accountno);
+	int checkaccount(String result);
 }

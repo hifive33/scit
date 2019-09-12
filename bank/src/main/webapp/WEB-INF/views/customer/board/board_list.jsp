@@ -10,7 +10,7 @@
 <script src="resources/js/jquery-3.4.1.min.js"></script>
 <script>
 $(function(){
-	$("#header > a[href=board_list]").attr("class","select")
+	$("#navi>.gnb>ul>li:nth-child(3)>a").attr("class","select")
 	$("#btn_list").on("click",function(){
 		$("#listform").submit();
 	})

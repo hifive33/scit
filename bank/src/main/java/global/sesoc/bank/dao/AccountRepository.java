@@ -112,4 +112,10 @@ public class AccountRepository {
 		
 		return mapper.denyLoan(accountno);
 	}
+
+	public int checkaccount(String result) {
+		AccountMapper mapper = session.getMapper(AccountMapper.class);
+		
+		return mapper.checkaccount(result);
+	}
 }

@@ -10,7 +10,16 @@
 <script src="../resources/js/jquery-3.4.1.min.js"></script>
 <script>
 	$(function(){
-		$("a[href=addaccount]").attr("class","select")
+		$("#navi>.gnb>ul>li:nth-child(2)>a").attr("class","select")
+		$("#setaccount").on('click', function(){
+			$.ajax({
+				method:'get'
+				,url:'setaccount'
+				,success:function(res){
+					$("input[name=accountno]").val(res)
+				}
+			})
+		})
 	})
 	function accountOpen(){
 		$("form").submit()
@@ -31,7 +40,7 @@
 				<ul class="basic_list">
 					<!-- 적금계좌 -->
 					<li><span>&#47; 계좌구분</span>적금계좌<input type="hidden" name="accounttype" value="saving" /></li>
-					<li><span>&#47; 계좌번호</span><input type="text" name="accountno" class="wr_account" placeholder="2354-258-25891" /> <!-- <a href="#">계좌번호 발급</a> --></li>
+					<li><span>&#47; 계좌번호</span><input type="text" name="accountno" class="wr_account" placeholder="2354-258-25891" /> <a id="setaccount">계좌번호 발급</a></li>
 					<li><span>&#47; 월 납입금</span><input type="text" name="payment" class="wr_account" /></li>
 					<li><span>&#47; 납입기간</span><input type="radio" name="years" value="1" checked />1년 <input type="radio" name="years" value="2" />2년 <input type="radio" name="years" value="3" />3년</li>
 					<li><span>&#47; 이율</span><input type="text" name="interest" class="wr_account" /></li>

@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -51,6 +52,20 @@ public class CustomerAccountController {
 			repo.insertLog(accountlog);
 		}
 		return "redirect:haveaccount";
+	}
+	
+	@GetMapping("/setaccount")
+	@ResponseBody
+	public String setaccount(){
+		String result = null;
+		int check = 1;
+		do{
+			result = String.valueOf((int) (Math.random() * 90000) + 10000);
+			check = repo.checkaccount(result);
+		}while(check == 1);
+		result = "1111-111-" + result;
+		System.out.println(result);
+		return result;
 	}
 	
 	@RequestMapping("/addaccount_2")

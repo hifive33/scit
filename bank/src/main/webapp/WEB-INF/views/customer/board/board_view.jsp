@@ -10,7 +10,7 @@
 <script src="resources/js/jquery-3.4.1.min.js"></script>
 <script>
 $(function(){
-	$("#header > a[href=board_list]").attr("class","select")
+	$("#navi>.gnb>ul>li:nth-child(3)>a").attr("class","select")
 	$("#delete").on('click',function(){
 		var replytext = $(".adm_board tr td").html().trim()
 		if(replytext!=''){

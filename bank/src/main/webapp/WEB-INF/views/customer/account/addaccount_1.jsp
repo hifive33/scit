@@ -10,7 +10,16 @@
 <script src="../resources/js/jquery-3.4.1.min.js"></script>
 <script>
 	$(function(){
-		$("a[href=addaccount]").attr("class","select")
+		$("#navi>.gnb>ul>li:nth-child(2)>a").attr("class","select")
+		$("#setaccount").on('click', function(){
+			$.ajax({
+				method:'get'
+				,url:'setaccount'
+				,success:function(res){
+					$("input[name=accountno]").val(res)
+				}
+			})
+		})
 	})
 	function accountOpen(){
 		$("form").submit()
@@ -31,7 +40,7 @@
 					<!-- 예금계좌 -->
 					
 					<li><span>&#47; 계좌구분</span>예금계좌<input type="hidden" name="accounttype" value="checking" /></li>
-					<li><span>&#47; 계좌번호</span><input type="text" name="accountno" class="wr_account" placeholder="2354-258-25891" /> <!-- <a href="#">계좌번호 발급</a> --></li>
+					<li><span>&#47; 계좌번호</span><input type="text" name="accountno" class="wr_account" placeholder="2354-258-25891" /> <a id="setaccount">계좌번호 발급</a></li>
 					<li><span>&#47; 초기잔고</span><input type="text" name="balance" class="wr_account" /></li>
 				</ul>
 			</form>

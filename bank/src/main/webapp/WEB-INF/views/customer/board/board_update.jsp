@@ -12,6 +12,7 @@
 <script>
 $(function(){
 	date()
+	$("#navi>.gnb>ul>li:nth-child(3)>a").attr("class","select")
 	$("#btn_update").on('click',function(){
 		$("form").submit();
 		return false;
@@ -64,7 +65,7 @@ function date(){
 						<td><button id="filechange">파일 바꾸기</button> ${model.originalfile}</td>
 					</c:if>
 					<c:if test="${model.originalfile == null}">
-						<td><input type="file" name="originalfile" /></td>
+						<td><input type="file" name="upload" /></td>
 					</c:if>
 				</tr>
 			</table>

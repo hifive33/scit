@@ -222,4 +222,12 @@
 		where
 			accountno=#{accountno}
 	</delete>
+	<select id="checkaccount" resultType="int">
+		select
+			count(*)
+		from
+			account
+		where
+			accountno=#{result}
+	</select>
 </mapper>

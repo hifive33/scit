@@ -39,7 +39,7 @@ public class AdminController {
 			accountrepo.denyLoan(accountno);
 		}
 	
-		return "redirect:/admin/adm_loan";
+		return "redirect:/adm_loan";
 	}
 	
 	@RequestMapping("/adm_answerlist")

@@ -10,7 +10,7 @@
 <script src="resources/js/jquery-3.4.1.min.js"></script>
 <script>
 	$(function(){
-		$("a[href=board_list]").attr("class","select")
+		$("#navi>.gnb>ul>li:nth-child(3)>a").attr("class","select")
 		date()
 		$("#btn_write").on('click',function(){
 			$("form").submit();
